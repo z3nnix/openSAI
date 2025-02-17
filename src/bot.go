@@ -17,14 +17,9 @@ import (
 var startTime time.Time
 
 func main() {
-	startTime := time.Now()
+	startTime = time.Now()
 
-	botTokenBytes, err := ioutil.ReadFile("token.bot")
-	if err != nil {
-		log.Fatalf("Ошибка при чтении файла токена: %v", err)
-	}
-
-	botToken := strings.TrimSpace(string(botTokenBytes))
+	botToken, err := ioutil.ReadFile("token.bot")
 	if err != nil {
 		log.Panic("Error reading token file:", err)
 	}
@@ -89,6 +84,7 @@ func main() {
 	if err := scanner.Err(); err != nil {
 		log.Panic(err)
 	}
+
 	infoFile, err := os.Open("info.bot")
 	if err != nil {
 		log.Panic("Error reading info file:", err)
@@ -125,18 +121,20 @@ func main() {
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
+
 	updates := bot.GetUpdatesChan(u)
 
 	messageCount := 0
+	var lastMessages []string
 
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
+
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		messageText := strings.TrimSpace(update.Message.Text)
-
 
 		if strings.HasPrefix(messageText, "/") {
 			cmd := strings.Split(messageText, "@")[0]
@@ -160,32 +158,63 @@ func main() {
 		}
 
 		var msg tgbotapi.MessageConfig
+
 		if names[messageText] {
-			randomResponse := responses[rand.Intn(len(responses))]
+			var randomResponse string
+			for {
+				randomResponse = responses[rand.Intn(len(responses))]
+				if !contains(lastMessages, randomResponse) {
+					break
+				}
+			}
+
 			typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
 			bot.Send(typing)
 			time.Sleep(2 * time.Second)
 
 			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomResponse)
 			bot.Send(msg)
+
+			lastMessages = append(lastMessages, randomResponse)
+			if len(lastMessages) > 15 {
+				lastMessages = lastMessages[1:]
+			}
 		} else if !strings.HasPrefix(messageText, "/") {
 			appendMessageToFile("vocabulary.bot", messageText)
 		}
 
 		messageCount++
 
-		if messageCount%15 == 0 {
-			randomVocabulary := vocabulary[rand.Intn(len(vocabulary))]
+		if messageCount%10 == 0 {
+			var randomVocabulary string
+			for {
+				randomVocabulary = vocabulary[rand.Intn(len(vocabulary))]
+				if !contains(lastMessages, randomVocabulary) {
+					break
+				}
+			}
+
 			typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
 			bot.Send(typing)
 			time.Sleep(2 * time.Second)
 
 			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
 			bot.Send(msg)
+
+			lastMessages = append(lastMessages, randomVocabulary)
+			if len(lastMessages) > 15 {
+				lastMessages = lastMessages[1:]
+			}
 		}
 
 		if update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.From.UserName == bot.Self.UserName {
-			randomVocabulary := vocabulary[rand.Intn(len(vocabulary))]
+			var randomVocabulary string
+			for {
+				randomVocabulary = vocabulary[rand.Intn(len(vocabulary))]
+				if !contains(lastMessages, randomVocabulary) {
+					break
+				}
+			}
 
 			typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
 			bot.Send(typing)
@@ -193,6 +222,11 @@ func main() {
 
 			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
 			bot.Send(msg)
+
+			lastMessages = append(lastMessages, randomVocabulary)
+			if len(lastMessages) > 15 {
+				lastMessages = lastMessages[1:]
+			}
 		}
 	}
 }
@@ -259,4 +293,13 @@ func escapeMarkdownV2(text string) string {
 		`!`, `\!`,
 	)
 	return replacer.Replace(text)
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
