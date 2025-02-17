@@ -17,9 +17,14 @@ import (
 var startTime time.Time
 
 func main() {
-	startTime = time.Now()
+	startTime := time.Now()
 
-	botToken, err := ioutil.ReadFile("token.bot")
+	botTokenBytes, err := ioutil.ReadFile("token.bot")
+	if err != nil {
+		log.Fatalf("Ошибка при чтении файла токена: %v", err)
+	}
+
+	botToken := strings.TrimSpace(string(botTokenBytes))
 	if err != nil {
 		log.Panic("Error reading token file:", err)
 	}
@@ -131,6 +136,7 @@ func main() {
 		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		messageText := strings.TrimSpace(update.Message.Text)
+
 
 		if strings.HasPrefix(messageText, "/") {
 			cmd := strings.Split(messageText, "@")[0]
