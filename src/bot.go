@@ -24,7 +24,8 @@ func main() {
 		log.Panic("Error reading token file:", err)
 	}
 
-	if len(botToken) == 0 {
+	token := strings.TrimSpace(string(botToken))
+	if len(token) == 0 {
 		log.Panic("Token file is empty")
 	}
 
@@ -110,7 +111,7 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	bot, err := tgbotapi.NewBotAPI(string(botToken))
+	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -269,7 +270,7 @@ func formatDuration(d time.Duration) string {
 	days := hours / 24
 	hours = hours % 24
 
-	return fmt.Sprintf("%d дней %d часа %d минут %d секунд", days, hours, minutes, seconds)
+	return fmt.Sprintf("%d дней %d часа %d минут %д секунд", days, hours, minutes, seconds)
 }
 
 func escapeMarkdownV2(text string) string {
