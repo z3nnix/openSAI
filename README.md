@@ -1,6 +1,6 @@
 
 
-# OpenSAI <img src="Logo.png" width=40 style="position: absolute; bottom: 0">
+# OpenSAI <img src="logo.png" width=40 style="position: absolute; bottom: 0">
 
 
 Open-source implementation of SAI (SimpleAI) in Go.
