@@ -15,7 +15,7 @@ First, you need to install dependencies.
 
 ### In Debian-based (Ubuntu, etc.)
 ```bash
-sudo apt install go
+sudo apt install golang
 ```
 
 ### In Arch-based (Manjaro, Artix, etc.)
