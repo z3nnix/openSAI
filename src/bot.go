@@ -19,7 +19,7 @@ var startTime time.Time
 func main() {
 	startTime = time.Now()
 
-	botToken, err := ioutil.ReadFile("src/config/token.bot")
+	botToken, err := ioutil.ReadFile("config/token.bot")
 	if err != nil {
 		log.Panic("Error reading token file:", err)
 	}
@@ -29,7 +29,7 @@ func main() {
 		log.Panic("Token file is empty")
 	}
 
-	namesFile, err := os.Open("src/config/names.bot")
+	namesFile, err := os.Open("config/names.bot")
 	if err != nil {
 		log.Panic("Error reading names file:", err)
 	}
@@ -48,7 +48,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	responseFile, err := os.Open("src/config/response.bot")
+	responseFile, err := os.Open("config/response.bot")
 	if err != nil {
 		log.Panic("Error reading response file:", err)
 	}
@@ -67,7 +67,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	vocabularyFile, err := os.Open("src/config/vocabulary.bot")
+	vocabularyFile, err := os.Open("config/vocabulary.bot")
 	if err != nil {
 		log.Panic("Error reading vocabulary file:", err)
 	}
@@ -86,7 +86,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	infoFile, err := os.Open("src/config/info.bot")
+	infoFile, err := os.Open("config/info.bot")
 	if err != nil {
 		log.Panic("Error reading info file:", err)
 	}
@@ -181,7 +181,7 @@ func main() {
 				lastMessages = lastMessages[1:]
 			}
 		} else if !strings.HasPrefix(messageText, "/") {
-			appendMessageToFile("src/config/vocabulary.bot", messageText)
+			appendMessageToFile("config/vocabulary.bot", messageText)
 		}
 
 		messageCount++
