@@ -174,6 +174,7 @@ func main() {
 			time.Sleep(2 * time.Second)
 
 			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomResponse)
+			msg.ReplyToMessageID = update.Message.MessageID
 			bot.Send(msg)
 
 			lastMessages = append(lastMessages, randomResponse)
@@ -200,6 +201,7 @@ func main() {
 			time.Sleep(2 * time.Second)
 
 			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
+			msg.ReplyToMessageID = update.Message.MessageID
 			bot.Send(msg)
 
 			lastMessages = append(lastMessages, randomVocabulary)
@@ -222,6 +224,7 @@ func main() {
 			time.Sleep(2 * time.Second)
 
 			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
+			msg.ReplyToMessageID = update.Message.MessageID
 			bot.Send(msg)
 
 			lastMessages = append(lastMessages, randomVocabulary)
@@ -243,7 +246,7 @@ func appendMessageToFile(filename, message string) {
 	if strings.Contains(message, "http://") || strings.Contains(message, "https://") || strings.Contains(message, "@") {
 		log.Println("Message contains link or username! Skipping.")
 		return
-	} else {}
+	}
 
 	if _, err := file.WriteString(message + "\n"); err != nil {
 		log.Println("Error writing to file:", err)
