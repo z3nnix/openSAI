@@ -1,20 +1,53 @@
-# OpenSAI
-> open-source implementation of SimpleAI(by izzy8799) in GO programming language 
 
-# Why?
-cuz i can.
+
+# OpenSAI <img src="Logo.png" width=40 style="position: absolute; bottom: 0">
+
+
+Open-source implementation of SAI (SimpleAI) in Go.
+
+![Static Badge](https://img.shields.io/badge/language-Go-blue) ![](https://img.shields.io/github/commit-activity/w/z3nnix/openSAI/main
+) ![](https://img.shields.io/github/stars/z3nnix/openSAI?style=flat-square
+)
 
 # Setup
-```sh
-touch names.bot info.bot response.bot token.bot vocabulary.bot
+
+First, you need to install dependencies.
+
+### In Debian-based (Ubuntu, etc.)
+```bash
+sudo apt install go
 ```
 
-``names.bot`` - list of names your bot will respond to.
-``response.bot`` - how the bot will respond. 
-``info.bot`` - bot information.
+### In Arch-based (Manjaro, Artix, etc.)
+```bash
+sudo pacman -S go
+```
 
-example of ``info.bot``:
+### In Gentoo-based
+```bash
+emerge --ask dev-lang/go
 ```
-Этот бот был создан для демонстрации возможностей OpenSAI.
-@lenochka_botyara_bot
+
+### Other
+Visit https://go.dev/doc/install
+
+## Post install
+
+Then, you need to make neccessary configuration files.
+Run commands below in the cloned repo folder.
+
+```bash
+cd config && touch info.bot names.bot response.bot token.bot vocabulary.bot && cd ..
 ```
+
+Now you can build your bot within command below
+```bash
+go build -o bot src/bot.go
+```
+
+Run it within
+```bash
+./bot
+```
+
+Ensure that your bot got neccesary permission for sending messages.
