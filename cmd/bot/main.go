@@ -12,8 +12,6 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/z3nnix/openSAI/internal/formatting.go"
-	"github.com/z3nnix/openSAI/internal/vocman.go"
 )
 
 var startTime time.Time
@@ -69,7 +67,7 @@ func main() {
 		log.Panic(err)
 	}
 
-	vocabularyFile, err := os.Open("config/vocabulary.bot")
+	vocabularyFile, err := os.Open("vocabulary.bot")
 	if err != nil {
 		log.Panic("Error reading vocabulary file:", err)
 	}
@@ -151,7 +149,7 @@ func main() {
 				case "/fetch":
 					uptime := time.Since(startTime)
 					uptimeFormatted := formatDuration(uptime)
-					infoTextEscaped := markdown.escape(infoText)
+					infoTextEscaped := escapeMarkdownV2(infoText)
 					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%s\n————————————————————\n*Время жизни:* %s\n\n_Powered by [OpenSAI](https://github.com/z3nnix/openSAI)_", infoTextEscaped, uptimeFormatted))
 					msg.ParseMode = "MarkdownV2"
 					bot.Send(msg)
@@ -183,7 +181,7 @@ func main() {
 				lastMessages = lastMessages[1:]
 			}
 		} else if !strings.HasPrefix(messageText, "/") {
-			vocman.appendMessageToFile("config/vocabulary.bot", messageText)
+			appendMessageToFile("vocabulary.bot", messageText)
 		}
 
 		messageCount++
@@ -232,6 +230,75 @@ func main() {
 			}
 		}
 	}
+}
+
+func appendMessageToFile(filename, message string) {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Println("Error opening file:", err)
+		return
+	}
+	defer file.Close()
+
+	if strings.Contains(message, "http://") || strings.Contains(message, "https://") || strings.Contains(message, "@") {
+		log.Println("Message contains link or username! Skipping.")
+		return
+	} else {}
+
+	if _, err := file.WriteString(message + "\n"); err != nil {
+		log.Println("Error writing to file:", err)
+	}
+}
+
+func formatDuration(d time.Duration) string {
+	d = time.Duration(math.Ceil(d.Seconds())) * time.Second
+	seconds := int(d.Seconds())
+
+	if seconds < 60 {
+		return fmt.Sprintf("%d секунд", seconds)
+	}
+
+	minutes := seconds / 60
+	seconds = seconds % 60
+
+	if minutes < 60 {
+		return fmt.Sprintf("%d минут %d секунд", minutes, seconds)
+	}
+
+	hours := minutes / 60
+	minutes = minutes % 60
+
+	if hours < 24 {
+		return fmt.Sprintf("%d часа %d минут %d секунд", hours, minutes, seconds)
+	}
+
+	days := hours / 24
+	hours = hours % 24
+
+	return fmt.Sprintf("%d дней %d часа %d минут %д секунд", days, hours, minutes, seconds)
+}
+
+func escapeMarkdownV2(text string) string {
+	replacer := strings.NewReplacer(
+		`_`, `\_`,
+		`*`, `\*`,
+		`[`, `\[`,
+		`]`, `\]`,
+		`(`, `\(`,
+		`)`, `\)`,
+		`~`, `\~`,
+		`>`, `\>`,
+		`#`, `\#`,
+		`+`, `\+`,
+		`-`, `\-`,
+		`=`, `\=`,
+		`|`, `\|`,
+		`{`, `\{`,
+		`}`, `\}`,
+		`.`, `\.`,
+		`!`, `\!`,
+	)
+	return replacer.Replace(text)
 }
 
 func contains(slice []string, item string) bool {
