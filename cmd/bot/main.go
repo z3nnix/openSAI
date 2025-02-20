@@ -1,13 +1,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"math"
 	"math/rand"
-	"os"
 	"strings"
 	"time"
 
@@ -15,91 +11,34 @@ import (
 )
 
 var startTime time.Time
+var botUsername string
 
 func main() {
 	startTime = time.Now()
 
-	botToken, err := ioutil.ReadFile("config/token.bot")
+	token, err := readToken("config/token.bot")
 	if err != nil {
 		log.Panic("Error reading token file:", err)
 	}
 
-	token := strings.TrimSpace(string(botToken))
-	if len(token) == 0 {
-		log.Panic("Token file is empty")
-	}
-
-	namesFile, err := os.Open("config/names.bot")
+	names, err := readNames("config/names.bot")
 	if err != nil {
 		log.Panic("Error reading names file:", err)
 	}
-	defer namesFile.Close()
 
-	names := make(map[string]bool)
-	scanner := bufio.NewScanner(namesFile)
-	for scanner.Scan() {
-		name := strings.TrimSpace(scanner.Text())
-		if name != "" {
-			names[name] = true
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Panic(err)
-	}
-
-	responseFile, err := os.Open("config/response.bot")
+	responses, err := readLines("config/response.bot")
 	if err != nil {
 		log.Panic("Error reading response file:", err)
 	}
-	defer responseFile.Close()
 
-	var responses []string
-	scanner = bufio.NewScanner(responseFile)
-	for scanner.Scan() {
-		response := strings.TrimSpace(scanner.Text())
-		if response != "" {
-			responses = append(responses, response)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Panic(err)
-	}
-
-	vocabularyFile, err := os.Open("vocabulary.bot")
+	vocabulary, err := readLines("vocabulary.bot")
 	if err != nil {
 		log.Panic("Error reading vocabulary file:", err)
 	}
-	defer vocabularyFile.Close()
 
-	var vocabulary []string
-	scanner = bufio.NewScanner(vocabularyFile)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line != "" {
-			vocabulary = append(vocabulary, line)
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Panic(err)
-	}
-
-	infoFile, err := os.Open("config/info.bot")
+	infoLines, err := readLines("config/info.bot")
 	if err != nil {
 		log.Panic("Error reading info file:", err)
-	}
-	defer infoFile.Close()
-
-	var infoLines []string
-	scanner = bufio.NewScanner(infoFile)
-	for scanner.Scan() {
-		infoLines = append(infoLines, strings.TrimSpace(scanner.Text()))
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Panic(err)
 	}
 
 	if len(infoLines) < 2 {
@@ -107,7 +46,7 @@ func main() {
 	}
 
 	infoText := infoLines[0]
-	botUsername := infoLines[1]
+	botUsername = infoLines[1]
 
 	rand.Seed(time.Now().UnixNano())
 
@@ -117,7 +56,6 @@ func main() {
 	}
 
 	bot.Debug = true
-
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
@@ -158,157 +96,6 @@ func main() {
 			continue
 		}
 
-		var msg tgbotapi.MessageConfig
-
-		if names[messageText] {
-			var randomResponse string
-			for {
-				randomResponse = responses[rand.Intn(len(responses))]
-				if !contains(lastMessages, randomResponse) {
-					break
-				}
-			}
-
-			typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
-			bot.Send(typing)
-			time.Sleep(2 * time.Second)
-
-			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomResponse)
-			msg.ReplyToMessageID = update.Message.MessageID
-			bot.Send(msg)
-
-			lastMessages = append(lastMessages, randomResponse)
-			if len(lastMessages) > 15 {
-				lastMessages = lastMessages[1:]
-			}
-		} else if !strings.HasPrefix(messageText, "/") {
-			appendMessageToFile("vocabulary.bot", messageText)
-		}
-
-		messageCount++
-
-		if messageCount%10 == 0 {
-			var randomVocabulary string
-			for {
-				randomVocabulary = vocabulary[rand.Intn(len(vocabulary))]
-				if !contains(lastMessages, randomVocabulary) {
-					break
-				}
-			}
-
-			typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
-			bot.Send(typing)
-			time.Sleep(2 * time.Second)
-
-			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
-			msg.ReplyToMessageID = update.Message.MessageID
-			bot.Send(msg)
-
-			lastMessages = append(lastMessages, randomVocabulary)
-			if len(lastMessages) > 15 {
-				lastMessages = lastMessages[1:]
-			}
-		}
-
-		if update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.From.UserName == bot.Self.UserName {
-			var randomVocabulary string
-			for {
-				randomVocabulary = vocabulary[rand.Intn(len(vocabulary))]
-				if !contains(lastMessages, randomVocabulary) {
-					break
-				}
-			}
-
-			typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
-			bot.Send(typing)
-			time.Sleep(2 * time.Second)
-
-			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
-			msg.ReplyToMessageID = update.Message.MessageID
-			bot.Send(msg)
-
-			lastMessages = append(lastMessages, randomVocabulary)
-			if len(lastMessages) > 15 {
-				lastMessages = lastMessages[1:]
-			}
-		}
+		processMessage(bot, update, names, responses, vocabulary, &lastMessages, &messageCount)
 	}
-}
-
-func appendMessageToFile(filename, message string) {
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Println("Error opening file:", err)
-		return
-	}
-	defer file.Close()
-
-	if strings.Contains(message, "http://") || strings.Contains(message, "https://") || strings.Contains(message, "@") {
-		log.Println("Message contains link or username! Skipping.")
-		return
-	}
-
-	if _, err := file.WriteString(message + "\n"); err != nil {
-		log.Println("Error writing to file:", err)
-	}
-}
-
-func formatDuration(d time.Duration) string {
-	d = time.Duration(math.Ceil(d.Seconds())) * time.Second
-	seconds := int(d.Seconds())
-
-	if seconds < 60 {
-		return fmt.Sprintf("%d секунд", seconds)
-	}
-
-	minutes := seconds / 60
-	seconds = seconds % 60
-
-	if minutes < 60 {
-		return fmt.Sprintf("%d минут %d секунд", minutes, seconds)
-	}
-
-	hours := minutes / 60
-	minutes = minutes % 60
-
-	if hours < 24 {
-		return fmt.Sprintf("%d часа %d минут %d секунд", hours, minutes, seconds)
-	}
-
-	days := hours / 24
-	hours = hours % 24
-
-	return fmt.Sprintf("%d дней %d часа %d минут %д секунд", days, hours, minutes, seconds)
-}
-
-func escapeMarkdownV2(text string) string {
-	replacer := strings.NewReplacer(
-		`_`, `\_`,
-		`*`, `\*`,
-		`[`, `\[`,
-		`]`, `\]`,
-		`(`, `\(`,
-		`)`, `\)`,
-		`~`, `\~`,
-		`>`, `\>`,
-		`#`, `\#`,
-		`+`, `\+`,
-		`-`, `\-`,
-		`=`, `\=`,
-		`|`, `\|`,
-		`{`, `\{`,
-		`}`, `\}`,
-		`.`, `\.`,
-		`!`, `\!`,
-	)
-	return replacer.Replace(text)
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }
