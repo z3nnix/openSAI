@@ -42,8 +42,12 @@ cd config && touch info.bot names.bot response.bot token.bot vocabulary.bot && c
 
 Now you can build your bot within command below
 ```bash
-go build -o bot cmd/bot/main.go cmd/bot/formatting.go cmd/bot/vocman.go cmd/bot/engine.go cmd/bot/config.go
+go build -o bot cmd/bot/main.go cmd/bot/formatting.go cmd/bot/vocman.go cmd/bot/<ENGINE NAME>.go cmd/bot/config.go
 ```
+
+### Engine list
+- StupidV1: A classic SimpleAI engine
+- EmbeddingsV1: modified classic engine 
 
 Run it within
 ```bash
