@@ -14,6 +14,31 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, names map[stri
 	messageText := strings.TrimSpace(update.Message.Text)
 
 	var msg tgbotapi.MessageConfig
+	for name := range names {
+		if strings.Contains(messageText, name) {
+			var randomResponse string
+			for {
+				randomResponse = responses[rand.Intn(len(responses))]
+				if !contains(*lastMessages, randomResponse) {
+					break
+				}
+			}
+
+			typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
+			bot.Send(typing)
+			time.Sleep(2 * time.Second)
+
+			msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomResponse)
+			msg.ReplyToMessageID = update.Message.MessageID
+			bot.Send(msg)
+
+			*lastMessages = append(*lastMessages, randomResponse)
+			if len(*lastMessages) > 15 {
+				*lastMessages = (*lastMessages)[1:]
+			}
+			return
+		}
+	}
 
 	if names[messageText] {
 		similarWord := findMostSimilarWord(vocabulary, messageText)
@@ -54,21 +79,21 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, names map[stri
 	}
 
 	if update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.From.UserName == bot.Self.UserName {
-		randomVocabulary := getRandomUniqueWord(vocabulary, *lastMessages)
+        randomVocabulary := getRandomUniqueWord(vocabulary, *lastMessages)
 
-		typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
-		bot.Send(typing)
-		time.Sleep(2 * time.Second)
+        typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
+        bot.Send(typing)
+        time.Sleep(2 * time.Second)
 
-		msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
-		msg.ReplyToMessageID = update.Message.MessageID
-		bot.Send(msg)
+        msg = tgbotapi.NewMessage(update.Message.Chat.ID, randomVocabulary)
+        msg.ReplyToMessageID = update.Message.MessageID
+        bot.Send(msg)
 
-		*lastMessages = append(*lastMessages, randomVocabulary)
-		if len(*lastMessages) > 15 {
-			*lastMessages = (*lastMessages)[1:]
-		}
-	}
+        *lastMessages = append(*lastMessages, randomVocabulary)
+        if len(*lastMessages) > 15 {
+            *lastMessages = (*lastMessages)[1:]
+        }
+    }
 }
 
 func findMostSimilarWord(vocabulary []string, input string) string {
