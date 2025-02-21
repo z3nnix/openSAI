@@ -42,7 +42,7 @@ cd config && touch info.bot names.bot response.bot token.bot vocabulary.bot && c
 
 Now you can build your bot within command below
 ```bash
-go build -o bot cmd/bot/main.go cmd/bot/formatting.go cmd/bot/vocman.go cmd/bot/engine.go
+go build -o bot cmd/bot/main.go cmd/bot/formatting.go cmd/bot/vocman.go cmd/bot/engine.go cmd/bot/config.go
 ```
 
 Run it within

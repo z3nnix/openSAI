@@ -40,7 +40,7 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, names map[stri
 
 	*messageCount++
 
-	if *messageCount%10 == 0 {
+	if *messageCount%90 == 0 {
 		var randomVocabulary string
 		for {
 			randomVocabulary = vocabulary[rand.Intn(len(vocabulary))]
