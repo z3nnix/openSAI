@@ -88,7 +88,7 @@ func main() {
 					uptime := time.Since(startTime)
 					uptimeFormatted := formatDuration(uptime)
 					infoTextEscaped := escapeMarkdownV2(infoText)
-					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%s\n————————————————————\n*Время жизни:* %s\n\n_Powered by [OpenSAI](https://github.com/z3nnix/openSAI)_", infoTextEscaped, uptimeFormatted))
+					msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%s\n————————————————————\n*Время жизни:* %s\n*Движок ответов:* %s\n\n_Powered by [OpenSAI](https://github.com/z3nnix/openSAI)_", infoTextEscaped, uptimeFormatted, engine))
 					msg.ParseMode = "MarkdownV2"
 					bot.Send(msg)
 				}
