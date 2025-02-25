@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"strings"
 	"time"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -37,7 +38,8 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, names map[stri
 			*lastMessages = (*lastMessages)[1:]
 		}
 	} else if !strings.HasPrefix(messageText, "/") {
-		appendMessageToFile("vocabulary.bot", messageText)
+		chatid := strconv.FormatInt(update.Message.Chat.ID, 10)
+		appendMessageToFile("vocabulary.bot", messageText, chatid)
 	}
 
 	*messageCount++
