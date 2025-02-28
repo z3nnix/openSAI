@@ -75,18 +75,20 @@ func main() {
 
         messageText := strings.TrimSpace(update.Message.Text)
 
-        // Проверяем, является ли сообщение командой
+        if int64(update.Message.Date) < startTime.Unix() {
+            log.Println("The message was sent before the bot was launched, ignore it.")
+            continue
+        }
+
         if strings.HasPrefix(messageText, "/") {
             cmdParts := strings.Split(messageText, "@")
-            cmd := cmdParts[0] // Команда без упоминания бота
+            cmd := cmdParts[0]
             cmdUser := ""
 
-            // Если команда содержит упоминание бота
             if len(cmdParts) > 1 {
                 cmdUser = cmdParts[1]
             }
 
-            // Проверяем, является ли пользователь администратором или это сам бот
             if cmdUser == "" || cmdUser == botUsername {
                 switch cmd {
                 case "/fetch":
@@ -98,13 +100,12 @@ func main() {
                     bot.Send(msg)
 
                 case "/amnesia":
-                    amnesiaHandler(bot, update) // Обработка команды /amnesia
+                    amnesiaHandler(bot, update)
                 }
-                continue // Пропускаем дальнейшую обработку сообщений
+                continue
             }
         }
 
-        // Обработка обычных сообщений
         processMessage(bot, update, names, responses, vocabulary, &lastMessages, &messageCount)
     }
 }
