@@ -63,7 +63,7 @@ func processMessage(bot *tgbotapi.BotAPI, update tgbotapi.Update, names map[stri
 
 	*messageCount++
 
-	if *messageCount%10 == 0 {
+	if *messageCount%200 == 0 {
 		randomVocabulary := getRandomUniqueWord(vocabulary, *lastMessages)
 
 		typing := tgbotapi.NewChatAction(update.Message.Chat.ID, tgbotapi.ChatTyping)
