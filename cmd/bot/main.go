@@ -6,12 +6,18 @@ import (
     "math/rand"
     "strings"
     "time"
+    "os"
+    "bufio"
+    "strconv"
 
     tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 var startTime time.Time
 var botUsername string
+var lastResponseTime time.Time
+var responseCount int
+const maxResponsesPerMinute = 5
 
 func main() {
     startTime = time.Now()
@@ -95,7 +101,14 @@ func main() {
                     uptime := time.Since(startTime)
                     uptimeFormatted := formatDuration(uptime)
                     infoTextEscaped := escapeMarkdownV2(infoText)
-                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%s\n————————————————————\n*Время жизни:* %s\n*Движок ответов:* %s\n\n_Powered by [OpenSAI](https://github.com/z3nnix/openSAI)_", infoTextEscaped, uptimeFormatted, engine))
+
+                    phrases, err := countLines("vocabulary.bot")
+                    if err != nil {
+                        fmt.Printf("Ошибка: %v\n", err)
+                        phrases = "<err>"
+                    }
+
+                    msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%s\n————————————————————\n*Время жизни:* %s\n*Движок ответов:* %s\n*Словарный запас\\:* %s фраз\n\n_Powered by [OpenSAI](https://github.com/z3nnix/openSAI)_", infoTextEscaped, uptimeFormatted, engine, phrases))
                     msg.ParseMode = "MarkdownV2"
                     bot.Send(msg)
 
@@ -106,6 +119,41 @@ func main() {
             }
         }
 
+        // Проверка частоты ответов
+        if time.Since(lastResponseTime) < time.Minute {
+            if responseCount >= maxResponsesPerMinute {
+                log.Println("Rate limit exceeded, ignoring message.")
+                continue
+            }
+        } else {
+            responseCount = 0
+        }
+
         processMessage(bot, update, names, responses, vocabulary, &lastMessages, &messageCount)
+
+        // Обновление времени последнего ответа и счетчика
+        lastResponseTime = time.Now()
+        responseCount++
     }
+}
+
+func countLines(filename string) (string, error) {
+    file, err := os.Open(filename)
+    if err != nil {
+        return "", err
+    }
+    defer file.Close()
+    
+    count := 0
+    scanner := bufio.NewScanner(file)
+    
+    for scanner.Scan() {
+        count++
+    }
+    
+    if err := scanner.Err(); err != nil {
+        return "", err
+    }
+    
+    return strconv.Itoa(count), nil
 }
