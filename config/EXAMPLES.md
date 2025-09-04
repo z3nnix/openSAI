@@ -1,8 +1,8 @@
 ## ``info.bot``
-> bot information.
+> bot information. 
 ```
 This bot really likes burgers
-@my_super_bot
+my_super_bot # [!!!] WITHOUT @
 ```
 
 ## ``names.bot``
