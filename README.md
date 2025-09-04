@@ -37,7 +37,7 @@ Then, you need to make neccessary configuration files.
 Run commands below in the cloned repo folder.
 
 ```bash
-cd config && touch info.bot names.bot response.bot token.bot vocabulary.bot && cd ..
+cd config && touch info.bot names.bot response.bot token.bot ../vocabulary.bot && cd ..
 ```
 
 Now you can build your bot within command below
@@ -48,6 +48,7 @@ go build -o bot cmd/bot/main.go cmd/bot/formatting.go cmd/bot/vocman.go cmd/bot/
 ### Engine list
 - StupidV1: A classic SimpleAI engine
 - EmbeddingsV1: modified classic engine 
+- ngramV1:      probabilistic statistical model
 
 Run it within
 ```bash

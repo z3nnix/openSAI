@@ -120,14 +120,28 @@ func main() {
         }
 
         // Проверка частоты ответов
+        const (
+            softLimit = 50 // Мягкий лимит
+            hardLimit = 80 // Жесткий лимит
+        )
+        
         if time.Since(lastResponseTime) < time.Minute {
-            if responseCount >= maxResponsesPerMinute {
-                log.Println("Rate limit exceeded, ignoring message.")
+            if responseCount >= hardLimit {
+                // Полный отказ после жесткого лимита
+                log.Println("Hard rate limit exceeded")
                 continue
+            } else if responseCount >= softLimit {
+                // Мягкий лимит - добавляем задержку
+                delay := time.Duration(responseCount-softLimit+1) * time.Second
+                time.Sleep(delay)
+                log.Printf("Soft limit exceeded, adding %v delay\n", delay)
             }
         } else {
             responseCount = 0
         }
+        
+        responseCount++
+        lastResponseTime = time.Now()
 
         processMessage(bot, update, names, responses, vocabulary, &lastMessages, &messageCount)
 
