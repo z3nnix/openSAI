@@ -1,13 +1,13 @@
-package main
+package formatting
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
-	"math"
 )
 
-func formatDuration(d time.Duration) string {
+func Duration(d time.Duration) string {
 	d = time.Duration(math.Ceil(d.Seconds())) * time.Second
 	seconds := int(d.Seconds())
 
@@ -35,7 +35,7 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%d дней %d часа %d минут %d секунд", days, hours, minutes, seconds)
 }
 
-func escapeMarkdownV2(text string) string {
+func EscapeMarkdownV2(text string) string {
 	replacer := strings.NewReplacer(
 		`_`, `\_`,
 		`*`, `\*`,
@@ -58,7 +58,7 @@ func escapeMarkdownV2(text string) string {
 	return replacer.Replace(text)
 }
 
-func contains(slice []string, item string) bool {
+func Contains(slice []string, item string) bool {
 	for _, s := range slice {
 		if s == item {
 			return true

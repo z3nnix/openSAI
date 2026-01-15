@@ -1,4 +1,4 @@
-package main
+package bot
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 ) 
 
-func amnesiaHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update,) {
+func AmnesiaHandler(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "✅")
 
 		chatConfig := tgbotapi.ChatAdministratorsConfig{

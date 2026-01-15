@@ -1,4 +1,4 @@
-package main
+package bot
 
 import (
 	"bufio"
@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func readToken(path string) (string, error) {
+func ReadToken(path string) (string, error) {
 	botToken, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
@@ -21,7 +21,7 @@ func readToken(path string) (string, error) {
 	return token, nil
 }
 
-func readNames(path string) (map[string]bool, error) {
+func ReadNames(path string) (map[string]bool, error) {
 	namesFile, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func readNames(path string) (map[string]bool, error) {
 	return names, nil
 }
 
-func readLines(path string) ([]string, error) {
+func ReadLines(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err

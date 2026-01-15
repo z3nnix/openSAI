@@ -10,6 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"OpenSAI/internal/bot"
+	"OpenSAI/internal/engines/smlV1"
+	"OpenSAI/pkg/formatting"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -17,6 +21,7 @@ var startTime time.Time
 var botUsername string
 var lastResponseTime time.Time
 var responseCount int
+var engine = "SMLv1"
 
 const (
 	maxResponsesPerMinute = 5
@@ -33,27 +38,27 @@ func main() {
 		}
 	}()
 
-	token, err := readToken("config/token.bot")
+	token, err := bot.ReadToken("config/token.bot")
 	if err != nil {
 		log.Panic("Error reading token file:", err)
 	}
 
-	names, err := readNames("config/names.bot")
+	names, err := bot.ReadNames("config/names.bot")
 	if err != nil {
 		log.Panic("Error reading names file:", err)
 	}
 
-	responses, err := readLines("config/response.bot")
+	responses, err := bot.ReadLines("config/response.bot")
 	if err != nil {
 		log.Panic("Error reading response file:", err)
 	}
 
-	vocabulary, err := readLines("vocabulary.bot")
+	vocabulary, err := bot.ReadLines("vocabulary.bot")
 	if err != nil {
 		log.Panic("Error reading vocabulary file:", err)
 	}
 
-	infoLines, err := readLines("config/info.bot")
+	infoLines, err := bot.ReadLines("config/info.bot")
 	if err != nil {
 		log.Panic("Error reading info file:", err)
 	}
@@ -67,13 +72,13 @@ func main() {
 
 	rand.Seed(time.Now().UnixNano())
 
-	bot, err := tgbotapi.NewBotAPI(token)
+	telegramBot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	bot.Debug = true
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	telegramBot.Debug = true
+	log.Printf("Authorized on account %s", telegramBot.Self.UserName)
 
 	for {
 		func() {
@@ -87,7 +92,7 @@ func main() {
 			u := tgbotapi.NewUpdate(0)
 			u.Timeout = 60
 
-			updates := bot.GetUpdatesChan(u)
+			updates := telegramBot.GetUpdatesChan(u)
 			log.Println("Bot started listening for updates...")
 
 			messageCount := 0
@@ -144,8 +149,8 @@ func main() {
 							switch cmd {
 							case "/fetch":
 								uptime := time.Since(startTime)
-								uptimeFormatted := formatDuration(uptime)
-								infoTextEscaped := escapeMarkdownV2(infoText)
+								uptimeFormatted := formatting.Duration(uptime)
+								infoTextEscaped := formatting.EscapeMarkdownV2(infoText)
 
 								phrases, err := countLines("vocabulary.bot")
 								if err != nil {
@@ -155,20 +160,20 @@ func main() {
 
 								msg := tgbotapi.NewMessage(update.Message.Chat.ID, fmt.Sprintf("%s\n————————————————————\n*Время жизни:* %s\n*Движок ответов:* %s\n*Словарный запас\\:* %s фраз\n\n_Powered by [OpenSAI](https://github.com/z3nnix/openSAI)_", infoTextEscaped, uptimeFormatted, engine, phrases))
 								msg.ParseMode = "MarkdownV2"
-								if _, err := bot.Send(msg); err != nil {
+								if _, err := telegramBot.Send(msg); err != nil {
 									log.Printf("Error sending message: %v", err)
 									time.Sleep(2 * time.Second)
 								}
 								return
 
 							case "/amnesia":
-								amnesiaHandler(bot, update)
+								bot.AmnesiaHandler(telegramBot, update)
 								return
 							}
 						}
 					}
 
-					processMessage(bot, update, names, responses, vocabulary, &lastMessages, &messageCount)
+					smlV1.ProcessMessage(telegramBot, update, names, responses, vocabulary, &lastMessages, &messageCount)
 
 				}(update)
 			}
@@ -200,10 +205,10 @@ func countLines(filename string) (string, error) {
 	return strconv.Itoa(count), nil
 }
 
-func sendMessageWithRetry(bot *tgbotapi.BotAPI, msg tgbotapi.Chattable) error {
+func sendMessageWithRetry(telegramBot *tgbotapi.BotAPI, msg tgbotapi.Chattable) error {
 	var err error
 	for attempt := 0; attempt < 3; attempt++ {
-		_, err = bot.Send(msg)
+		_, err = telegramBot.Send(msg)
 		if err == nil {
 			return nil
 		}

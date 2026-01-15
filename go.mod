@@ -1,4 +1,4 @@
-module github.com/z3nnix/openSAI
+module OpenSAI
 
 go 1.22
 
